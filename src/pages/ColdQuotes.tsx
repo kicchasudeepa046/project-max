@@ -3,7 +3,10 @@ import { Search, Filter, Send, MessageSquare, ChevronLeft, ChevronRight, Eye, Ar
 import { mockQuotes, Quote } from '../data/mockData';
 import { ViewMoreModal } from '../components/ViewMoreModal';
 import { CustomMessageModal } from '../components/CustomMessageModal';
+import { QuoteEmailsModal } from '../components/QuoteEmailsModal';
 import { useToast } from '../contexts/ToastContext';
+import { emailService } from '../services/emailService';
+import { Email } from '../types/email';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,6 +20,9 @@ export function ColdQuotes() {
   const [selectedQuoteForModal, setSelectedQuoteForModal] = useState<Quote | null>(null);
   const [showCustomMessageModal, setShowCustomMessageModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'cold' | 'archived'>('cold');
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [selectedQuoteForEmails, setSelectedQuoteForEmails] = useState<Quote | null>(null);
+  const [quoteEmails, setQuoteEmails] = useState<Email[]>([]);
 
   const coldQuotes = quotes.filter(q => q.isCold && !q.isArchived);
   const archivedQuotes = quotes.filter(q => q.isArchived);
@@ -126,6 +132,19 @@ export function ColdQuotes() {
     setActiveTab(tab);
     setSelectedQuotes(new Set());
     setCurrentPage(1);
+  };
+
+  const handleShowEmails = async (quote: Quote, event: React.MouseEvent) => {
+    event.preventDefault();
+    setSelectedQuoteForEmails(quote);
+    try {
+      const emails = await emailService.getEmailsByQuote(quote.id);
+      setQuoteEmails(emails);
+      setShowEmailModal(true);
+    } catch (error) {
+      console.error('Error loading emails:', error);
+      showToast('Failed to load emails', 'error');
+    }
   };
 
   return (
@@ -312,12 +331,12 @@ export function ColdQuotes() {
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <a
-                      href="#"
-                      className="text-sm font-medium text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300"
+                    <button
+                      onClick={(e) => handleShowEmails(quote, e)}
+                      className="text-sm font-medium text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300 hover:underline"
                     >
                       {quote.quoteNumber}
-                    </a>
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-sm text-gray-900 dark:text-white">
@@ -457,6 +476,17 @@ export function ColdQuotes() {
         onClose={() => setShowCustomMessageModal(false)}
         selectedQuoteIds={Array.from(selectedQuotes)}
         onSend={handleSendCustomMessage}
+      />
+
+      <QuoteEmailsModal
+        isOpen={showEmailModal}
+        onClose={() => {
+          setShowEmailModal(false);
+          setSelectedQuoteForEmails(null);
+          setQuoteEmails([]);
+        }}
+        quoteNumber={selectedQuoteForEmails?.quoteNumber || ''}
+        emails={quoteEmails}
       />
     </div>
   );
