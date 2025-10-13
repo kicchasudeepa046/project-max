@@ -6,7 +6,7 @@ import {
   Menu, Plus, RefreshCw, Download, Printer, Edit3
 } from 'lucide-react';
 import { emailService } from '../services/emailService';
-import { Email } from '../types/email';
+import { Email, EmailAccount } from '../types/email';
 import { EmailComposer } from '../components/EmailComposer';
 import { mockQuotes } from '../data/mockData';
 import { useToast } from '../contexts/ToastContext';
@@ -14,10 +14,12 @@ import { useToast } from '../contexts/ToastContext';
 export function Emails() {
   const { showToast } = useToast();
   const [emails, setEmails] = useState<Email[]>([]);
+  const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFolder, setSelectedFolder] = useState<string>('inbox');
+  const [selectedAccount, setSelectedAccount] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showEmailList, setShowEmailList] = useState(true);
@@ -25,8 +27,22 @@ export function Emails() {
   const [starredEmails, setStarredEmails] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    loadEmailAccounts();
+  }, []);
+
+  useEffect(() => {
     loadEmails();
-  }, [selectedFolder, selectedCategory]);
+  }, [selectedFolder, selectedCategory, selectedAccount]);
+
+  const loadEmailAccounts = async () => {
+    try {
+      const accounts = await emailService.getEmailAccounts();
+      setEmailAccounts(accounts);
+    } catch (error) {
+      console.error('Error loading email accounts:', error);
+      showToast('Failed to load email accounts', 'error');
+    }
+  };
 
   const loadEmails = async () => {
     try {
@@ -41,6 +57,10 @@ export function Emails() {
 
       if (selectedCategory !== 'all') {
         filters.category = selectedCategory;
+      }
+
+      if (selectedAccount !== 'all') {
+        filters.account_id = selectedAccount;
       }
 
       if (searchQuery) {
@@ -139,6 +159,11 @@ export function Emails() {
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
+  };
+
+  const getAccountEmail = (accountId: string): string => {
+    const account = emailAccounts.find(acc => acc.id === accountId);
+    return account?.email || accountId;
   };
 
   const unreadCount = emails.filter(e => !e.is_read).length;
@@ -244,6 +269,52 @@ export function Emails() {
 
             <div>
               <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                Accounts
+              </h3>
+              <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    setSelectedAccount('all');
+                    setIsMobileSidebarOpen(false);
+                  }}
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                    ${selectedAccount === 'all'
+                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }
+                  `}
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm font-medium">All Accounts</span>
+                </button>
+                {emailAccounts.map(account => (
+                  <button
+                    key={account.id}
+                    onClick={() => {
+                      setSelectedAccount(account.id);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    className={`
+                      w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+                      ${selectedAccount === account.id
+                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }
+                    `}
+                  >
+                    <User className="w-4 h-4" />
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-medium">{account.name}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{account.email}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                 Categories
               </h3>
               <div className="space-y-1">
@@ -338,6 +409,12 @@ export function Emails() {
                             </p>
                             <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                               {formatDate(email.sent_at || email.created_at)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded">
+                              {getAccountEmail(email.account_id)}
                             </span>
                           </div>
 
@@ -447,9 +524,14 @@ export function Emails() {
                           {selectedEmail.category.replace('_', ' ')}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {selectedEmail.direction === 'inbound' ? `To: ${selectedEmail.recipient_email}` : `From: ${selectedEmail.sender_email}`}
-                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {selectedEmail.direction === 'inbound' ? `To: ` : `From: `}
+                        </p>
+                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded">
+                          {getAccountEmail(selectedEmail.account_id)}
+                        </span>
+                      </div>
                     </div>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       {new Date(selectedEmail.sent_at || selectedEmail.created_at).toLocaleString()}

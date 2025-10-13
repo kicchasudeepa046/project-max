@@ -242,47 +242,184 @@
 // };
 
 
-import { Email, Contact, EmailTemplate, FollowUpSchedule, EmailFilters, EmailAttachment } from '../types/email';
+import { Email, Contact, EmailTemplate, FollowUpSchedule, EmailFilters, EmailAttachment, EmailAccount } from '../types/email';
+
+// Mock Email Accounts
+const emailAccounts: EmailAccount[] = [
+  { id: 'acc1', email: 'ss@abc.com', name: 'Sales Support', isActive: true },
+  { id: 'acc2', email: 'aa@abc.com', name: 'Account Admin', isActive: true },
+  { id: 'acc3', email: 'bb@abc.com', name: 'Business Operations', isActive: true },
+];
 
 // Mock Data
+const now = new Date();
+const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+
 let emails: Email[] = [
   {
     id: '1',
+    account_id: 'acc1',
     contact_id: '1',
     quote_id: '101',
-    subject: 'Quote for Project X',
-    body: 'Hello, please find the quote attached.',
-    sender_email: 'sales@example.com',
+    subject: 'Quote Request - Industrial Flow Meters',
+    body: 'Hello, we are interested in getting a quote for 50 industrial flow meters for our new facility. Could you please provide pricing and delivery timeline?',
+    sender_email: 'john.doe@acmecorp.com',
+    recipient_email: 'ss@abc.com',
+    cc: [],
+    bcc: [],
+    status: 'sent',
+    category: 'new_inquiry',
+    direction: 'inbound',
+    is_read: false,
+    has_attachments: false,
+    attachments: [],
+    sent_at: now.toISOString(),
+    created_at: now.toISOString(),
+  },
+  {
+    id: '2',
+    account_id: 'acc1',
+    contact_id: '1',
+    quote_id: '101',
+    subject: 'RE: Quote for Project X',
+    body: 'Dear client, please find the detailed quote attached. We have included pricing for all 24 flow meters as discussed. Let me know if you have any questions.',
+    sender_email: 'ss@abc.com',
     recipient_email: 'client@example.com',
     cc: [],
     bcc: [],
     status: 'sent',
     category: 'quote_sent',
     direction: 'outbound',
-    is_read: false,
+    is_read: true,
     has_attachments: true,
     attachments: [{ name: 'quote.pdf', size: 1024, type: 'application/pdf', url: '/mock/quote.pdf' }],
-    sent_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
+    sent_at: yesterday.toISOString(),
+    created_at: yesterday.toISOString(),
   },
   {
-    id: '2',
+    id: '3',
+    account_id: 'acc2',
     contact_id: '2',
     quote_id: null,
-    subject: 'New Inquiry',
-    body: 'I want more info about your services.',
+    subject: 'Partnership Inquiry',
+    body: 'I want more information about your services and potential partnership opportunities.',
     sender_email: 'client2@example.com',
-    recipient_email: 'info@example.com',
+    recipient_email: 'aa@abc.com',
     cc: [],
     bcc: [],
-    status: 'draft',
+    status: 'sent',
     category: 'new_inquiry',
     direction: 'inbound',
     is_read: true,
     has_attachments: false,
     attachments: [],
-    sent_at: null,
-    created_at: new Date().toISOString(),
+    sent_at: yesterday.toISOString(),
+    created_at: yesterday.toISOString(),
+  },
+  {
+    id: '4',
+    account_id: 'acc2',
+    contact_id: '3',
+    quote_id: '102',
+    subject: 'Follow-up on Q-2025-002',
+    body: 'Hi, just checking in on the quote we sent last week. Have you had a chance to review it? Please let me know if you need any additional information.',
+    sender_email: 'aa@abc.com',
+    recipient_email: 'techstart@example.com',
+    cc: [],
+    bcc: [],
+    status: 'sent',
+    category: 'follow_up',
+    direction: 'outbound',
+    is_read: true,
+    has_attachments: false,
+    attachments: [],
+    sent_at: twoDaysAgo.toISOString(),
+    created_at: twoDaysAgo.toISOString(),
+  },
+  {
+    id: '5',
+    account_id: 'acc3',
+    contact_id: '4',
+    quote_id: null,
+    subject: 'Technical Specifications Request',
+    body: 'We need detailed technical specifications for your flow meter model FM-2000. Can you send us the datasheet?',
+    sender_email: 'engineer@globalsolutions.com',
+    recipient_email: 'bb@abc.com',
+    cc: [],
+    bcc: [],
+    status: 'sent',
+    category: 'new_inquiry',
+    direction: 'inbound',
+    is_read: false,
+    has_attachments: false,
+    attachments: [],
+    sent_at: twoDaysAgo.toISOString(),
+    created_at: twoDaysAgo.toISOString(),
+  },
+  {
+    id: '6',
+    account_id: 'acc3',
+    contact_id: '4',
+    quote_id: '103',
+    subject: 'RE: Technical Specifications Request',
+    body: 'Thank you for your inquiry. Please find attached the complete technical documentation for our FM-2000 model. Let me know if you need anything else.',
+    sender_email: 'bb@abc.com',
+    recipient_email: 'engineer@globalsolutions.com',
+    cc: [],
+    bcc: [],
+    status: 'sent',
+    category: 'follow_up',
+    direction: 'outbound',
+    is_read: true,
+    has_attachments: true,
+    attachments: [
+      { name: 'FM-2000-datasheet.pdf', size: 2048, type: 'application/pdf', url: '/mock/datasheet.pdf' },
+      { name: 'installation-guide.pdf', size: 1536, type: 'application/pdf', url: '/mock/install.pdf' },
+    ],
+    sent_at: threeDaysAgo.toISOString(),
+    created_at: threeDaysAgo.toISOString(),
+  },
+  {
+    id: '7',
+    account_id: 'acc1',
+    contact_id: '5',
+    quote_id: '104',
+    subject: 'Urgent: Delivery Delay Notification',
+    body: 'We regret to inform you that there will be a 2-week delay in the delivery of your order due to supply chain issues. We apologize for any inconvenience.',
+    sender_email: 'ss@abc.com',
+    recipient_email: 'procurement@innovation.com',
+    cc: ['manager@innovation.com'],
+    bcc: [],
+    status: 'sent',
+    category: 'follow_up',
+    direction: 'outbound',
+    is_read: true,
+    has_attachments: false,
+    attachments: [],
+    sent_at: threeDaysAgo.toISOString(),
+    created_at: threeDaysAgo.toISOString(),
+  },
+  {
+    id: '8',
+    account_id: 'acc2',
+    contact_id: '6',
+    quote_id: null,
+    subject: 'Order Confirmation #ORD-2025-042',
+    body: 'Thank you for your order! This email confirms we have received your purchase order for 15 flow meters. Expected delivery: October 20, 2025.',
+    sender_email: 'aa@abc.com',
+    recipient_email: 'orders@healthcare.com',
+    cc: [],
+    bcc: [],
+    status: 'sent',
+    category: 'closed',
+    direction: 'outbound',
+    is_read: true,
+    has_attachments: true,
+    attachments: [{ name: 'order-confirmation.pdf', size: 512, type: 'application/pdf', url: '/mock/confirmation.pdf' }],
+    sent_at: threeDaysAgo.toISOString(),
+    created_at: threeDaysAgo.toISOString(),
   },
 ];
 
@@ -301,16 +438,21 @@ let followUps: FollowUpSchedule[] = [
 
 // Service with Mock Data
 export const emailService = {
+  async getEmailAccounts(): Promise<EmailAccount[]> {
+    return emailAccounts;
+  },
+
   async getEmails(filters?: EmailFilters): Promise<Email[]> {
     let result = [...emails];
 
+    if (filters?.account_id) result = result.filter(e => e.account_id === filters.account_id);
     if (filters?.category) result = result.filter(e => e.category === filters.category);
     if (filters?.status) result = result.filter(e => e.status === filters.status);
     if (filters?.direction) result = result.filter(e => e.direction === filters.direction);
     if (filters?.isRead !== undefined) result = result.filter(e => e.is_read === filters.isRead);
     if (filters?.searchQuery) {
       const q = filters.searchQuery.toLowerCase();
-      result = result.filter(e => 
+      result = result.filter(e =>
         e.subject.toLowerCase().includes(q) ||
         e.body.toLowerCase().includes(q) ||
         e.sender_email.toLowerCase().includes(q) ||

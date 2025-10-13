@@ -11,8 +11,16 @@ export interface Contact {
   updated_at: string;
 }
 
+export interface EmailAccount {
+  id: string;
+  email: string;
+  name: string;
+  isActive: boolean;
+}
+
 export interface Email {
   id: string;
+  account_id: string;
   contact_id: string | null;
   quote_id: string | null;
   subject: string;
@@ -61,6 +69,7 @@ export interface FollowUpSchedule {
 }
 
 export interface EmailFilters {
+  account_id?: string;
   category?: string;
   status?: string;
   direction?: string;
