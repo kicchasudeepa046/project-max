@@ -168,7 +168,7 @@ export function Emails() {
 
   const unreadCount = emails.filter(e => !e.is_read).length;
   const folders = [
-    { id: 'inbox', label: 'Inbox', icon: Inbox, count: emails.length },
+    { id: 'inbox', label: 'Mails', icon: Inbox, count: emails.length },
     { id: 'unread', label: 'Unread', icon: Mail, count: unreadCount },
     { id: 'sent', label: 'Sent', icon: Send, count: emails.filter(e => e.direction === 'outbound').length },
     { id: 'starred', label: 'Starred', icon: Star, count: starredEmails.size },
@@ -208,13 +208,13 @@ export function Emails() {
             <RefreshCw className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
 
-          <button
+          {/* <button
             onClick={() => setIsComposerOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Email</span>
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -310,6 +310,17 @@ export function Emails() {
                     </div>
                   </button>
                 ))}
+                {/* Add Account Button */}
+    <button
+      onClick={() => {
+        // Open your add account modal or handle adding logic here
+        console.log('Add new account');
+      }}
+      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 mt-2"
+    >
+      <User className="w-4 h-4" />
+      <span className="text-sm font-medium">Add Account</span>
+    </button>
               </div>
             </div>
 

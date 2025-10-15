@@ -144,6 +144,7 @@ import { CreateQuote } from './pages/CreateQuote';
 import { Emails } from './pages/Emails';
 import { UnderDevelopment } from './components/UnderDevelopment';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { Settings } from './pages/Settings';
 
 function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -243,7 +244,7 @@ function AppLayout() {
               path="/settings"
               element={
                 <ProtectedRoute>
-                  <UnderDevelopment />
+                  <Settings />
                 </ProtectedRoute>
               }
             />
